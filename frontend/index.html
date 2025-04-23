@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Autodidactic Learning Tool</title>
   <style>
     body {
@@ -23,14 +23,14 @@
     button {
       width: 48%;
     }
-    #output, #log, #guess-result {
+    #output, #log, #chart-container, #guess-result {
       background-color: #f3f3f3;
       padding: 10px;
       margin-top: 10px;
       border: 1px solid #ccc;
       white-space: pre-wrap;
     }
-    #output, #log {
+    #output, #log, #chart-container {
       display: none;
     }
     #log {
@@ -62,10 +62,10 @@
 </p>
 
 <label for="example">Example:</label>
-<input type="text" id="example" placeholder="e.g., 10?1? (length 5)">
+<input type="text" id="example" placeholder="e.g., 10?1? (length 5)" />
 
 <label for="label">Label:</label>
-<input type="text" id="label" placeholder="1 (positive), 0 (negative), or ? (unlabeled)">
+<input type="text" id="label" placeholder="1 (positive), 0 (negative), or ? (unlabeled)" />
 
 <div style="display: flex; justify-content: space-between;">
   <button onclick="submitExample()">Submit Example</button>
@@ -75,19 +75,17 @@
 <h3>Current Hypothesis:</h3>
 <div id="output">Waiting for input...</div>
 
-<div id="chart-container" style="margin-top: 20px;">
+<div id="chart-container">
   <canvas id="hypothesisChart" width="600" height="200"></canvas>
 </div>
 
 <h3>Action Log:</h3>
 <div id="log">No steps yet.</div>
 
-<hr>
-<h2>Guess the Hypothesis</h2>
+<hr />
+<h2>Guess the Current Hypothesis</h2>
 <p>Select the literals you think are part of the current hypothesis:</p>
-<div class="checkbox-grid" id="literalCheckboxes">
-  <!-- Checkboxes will be added by JS -->
-</div>
+<div class="checkbox-grid" id="literalCheckboxes"></div>
 <button onclick="submitGuess()">Submit Guess</button>
 
 <div id="guess-result">Make a guess to see your score.</div>
@@ -96,11 +94,13 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="app.js"></script>
 
-<!-- Checkbox + Guess Logic -->
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-  const literals = ["x1", "¬x1", "x2", "¬x2", "x3", "¬x3", "x4", "¬x4", "x5", "¬x5"];
-  const checkboxContainer = document.getElementById("literalCheckboxes");
+const literals = ["x1", "¬x1", "x2", "¬x2", "x3", "¬x3", "x4", "¬x4", "x5", "¬x5"];
+const checkboxContainer = document.getElementById("literalCheckboxes");
+const guessResultBox = document.getElementById("guess-result");
+
+// Create checkboxes on DOM load
+window.addEventListener("DOMContentLoaded", () => {
   literals.forEach(literal => {
     const label = document.createElement("label");
     const checkbox = document.createElement("input");
@@ -124,19 +124,38 @@ async function submitGuess() {
     });
 
     const data = await response.json();
-    document.getElementById("guess-result").innerHTML = `
+    guessResultBox.innerHTML = `
       <strong>Score:</strong> ${data.score} (${data.percentage})<br>
       <strong>Correct Inclusions:</strong> ${data.correct_inclusions.join(", ") || "None"}<br>
       <strong>Correct Exclusions:</strong> ${data.correct_exclusions.join(", ") || "None"}<br>
       <strong>Actual Hypothesis:</strong> ${data.actual_hypothesis.join(", ")}
     `;
 
-    // Reveal hidden sections
     document.getElementById("output").style.display = "block";
     document.getElementById("log").style.display = "block";
+    document.getElementById("chart-container").style.display = "block";
   } catch (error) {
-    document.getElementById("guess-result").textContent = "Could not evaluate your guess. Server error.";
+    guessResultBox.textContent = "Could not evaluate your guess. Server error.";
   }
+}
+
+function resetLearner() {
+  fetch("https://autodidactic-tool.onrender.com/reset", { method: "POST" })
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById("example").value = "";
+      document.getElementById("label").value = "";
+
+      document.getElementById("output").style.display = "none";
+      document.getElementById("log").style.display = "none";
+      document.getElementById("chart-container").style.display = "none";
+
+      document.getElementById("output").textContent = "Waiting for input...";
+      document.getElementById("log").textContent = "No steps yet.";
+      guessResultBox.textContent = "Make a guess to see your score.";
+
+      document.querySelectorAll("input[name=literal]").forEach(cb => cb.checked = false);
+    });
 }
 </script>
 
