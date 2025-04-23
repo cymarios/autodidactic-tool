@@ -167,22 +167,12 @@ async function submitExample() {
 
 async function resetLearner() {
   try {
-    const response = await fetch("https://autodidactic-tool.onrender.com/reset", {
+    await fetch("https://autodidactic-tool.onrender.com/reset", {
       method: "POST"
     });
-    await response.json();
 
-    document.getElementById("example").value = "";
-    document.getElementById("label").value = "";
-    document.getElementById("output").style.display = "none";
-    document.getElementById("log").style.display = "none";
-    document.getElementById("chart-container").style.display = "none";
-    document.getElementById("guess-result").textContent = "Make a guess to see your score.";
-    document.querySelectorAll("input[name=literal]").forEach(cb => cb.checked = false);
-    hasGuessed = false;
-    chart = null;
-    latestHypothesis = [];
-    latestLog = [];
+    // 🔁 Force full page reload
+    window.location.reload();
   } catch (error) {
     alert("Reset failed.");
   }
