@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Autodidactic Learning Tool</title>
   <style>
     body {
@@ -23,7 +23,7 @@
     button {
       width: 48%;
     }
-    #output, #log, #chart-container, #guess-result {
+    #output, #log, #guess-result, #chart-container {
       background-color: #f3f3f3;
       padding: 10px;
       margin-top: 10px;
@@ -38,13 +38,15 @@
       overflow-y: auto;
     }
     .checkbox-grid {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
       gap: 10px;
       margin-top: 10px;
     }
     .checkbox-grid label {
-      flex: 1 0 30%;
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
   </style>
 </head>
@@ -54,16 +56,16 @@
 
 <p>
   Enter a <strong>partially labeled binary example with length of 5</strong> (e.g., <code>10?1?</code>) and a label:
-  <code>1</code> (positive), <code>0</code> (negative), or <code>?</code> (unlabeled).
-  Submit examples one by one — after each, the autodidactic learning algorithm updates the internal hypothesis.
+  <code>1</code> (positive), <code>0</code> (negative), or <code>?</code> (unlabeled).  
+  Submit examples one by one — after each, the autodidactic learning algorithm updates the internal hypothesis.  
   Press <strong>Reset</strong> to start over.
 </p>
 
 <label for="example">Example:</label>
-<input type="text" id="example" placeholder="e.g., 10?1? (length 5)" />
+<input type="text" id="example" placeholder="e.g., 10?1? (length 5)">
 
 <label for="label">Label:</label>
-<input type="text" id="label" placeholder="1 (positive), 0 (negative), or ? (unlabeled)" />
+<input type="text" id="label" placeholder="1 (positive), 0 (negative), or ? (unlabeled)">
 
 <div style="display: flex; justify-content: space-between;">
   <button onclick="submitExample()">Submit Example</button>
@@ -80,7 +82,7 @@
 <h3>Action Log:</h3>
 <div id="log">No steps yet.</div>
 
-<hr />
+<hr>
 <h2>Guess the Current Hypothesis</h2>
 <p>Select the literals you think are part of the current hypothesis:</p>
 <div class="checkbox-grid" id="literalCheckboxes"></div>
@@ -92,12 +94,16 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="app.js"></script>
 
-<!-- Checkbox generation + guessing logic -->
 <script>
 const literals = ["x1", "¬x1", "x2", "¬x2", "x3", "¬x3", "x4", "¬x4", "x5", "¬x5"];
 const checkboxContainer = document.getElementById("literalCheckboxes");
+const outputDiv = document.getElementById("output");
+const logDiv = document.getElementById("log");
+const chartDiv = document.getElementById("chart-container");
+const guessResult = document.getElementById("guess-result");
 
-document.addEventListener("DOMContentLoaded", () => {
+function generateCheckboxes() {
+  checkboxContainer.innerHTML = "";
   literals.forEach(literal => {
     const label = document.createElement("label");
     const checkbox = document.createElement("input");
@@ -108,115 +114,30 @@ document.addEventListener("DOMContentLoaded", () => {
     label.appendChild(document.createTextNode(" " + literal));
     checkboxContainer.appendChild(label);
   });
-});
+}
+
+document.addEventListener("DOMContentLoaded", generateCheckboxes);
 
 async function submitGuess() {
   const selected = Array.from(document.querySelectorAll("input[name=literal]:checked")).map(cb => cb.value);
-
   try {
     const response = await fetch("https://autodidactic-tool.onrender.com/guess", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ guess: selected })
     });
-
     const data = await response.json();
-    document.getElementById("guess-result").innerHTML = `
+    guessResult.innerHTML = `
       <strong>Score:</strong> ${data.score} (${data.percentage})<br>
       <strong>Correct Inclusions:</strong> ${data.correct_inclusions.join(", ") || "None"}<br>
       <strong>Correct Exclusions:</strong> ${data.correct_exclusions.join(", ") || "None"}<br>
       <strong>Actual Hypothesis:</strong> ${data.actual_hypothesis.join(", ")}
     `;
-
-    document.getElementById("output").style.display = "block";
-    document.getElementById("log").style.display = "block";
-    document.getElementById("chart-container").style.display = "block";
-  } catch (error) {
-    document.getElementById("guess-result").textContent = "Could not evaluate your guess. Server error.";
-  }
-}
-
-function resetLearner() {
-  fetch("https://autodidactic-tool.onrender.com/reset", { method: "POST" })
-    .then(res => res.json())
-    .then(data => {
-      document.getElementById("example").value = "";
-      document.getElementById("label").value = "";
-      document.getElementById("output").style.display = "none";
-      document.getElementById("log").style.display = "none";
-      document.getElementById("chart-container").style.display = "none";
-      document.getElementById("output").textContent = "Waiting for input...";
-      document.getElementById("log").textContent = "No steps yet.";
-      document.getElementById("guess-result").textContent = "Make a guess to see your score.";
-      document.querySelectorAll("input[name=literal]").forEach(cb => cb.checked = false);
-    });
-}
-
-function submitExample() {
-  const example = document.getElementById("example").value.trim();
-  const label = document.getElementById("label").value.trim();
-
-  if (!example || !label) {
-    alert("Please enter both example and label.");
-    return;
-  }
-
-  fetch("https://autodidactic-tool.onrender.com/submit_example", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ example, label })
-  })
-    .then(res => res.json())
-    .then(data => {
-      document.getElementById("output").textContent =
-        data.current_hypothesis.length > 0
-          ? data.current_hypothesis.join(", ")
-          : "[Empty hypothesis]";
-
-      document.getElementById("log").innerHTML = data.log.map(line => `<div>${line}</div>`).join("");
-
-      updateChart(data.current_hypothesis);
-
-      // Hide outputs until guess is made
-      document.getElementById("output").style.display = "none";
-      document.getElementById("log").style.display = "none";
-      document.getElementById("chart-container").style.display = "none";
-      document.getElementById("guess-result").textContent = "Make a guess to see your score.";
-      document.querySelectorAll("input[name=literal]").forEach(cb => cb.checked = false);
-    });
-}
-
-let chart = null;
-function updateChart(hypothesis) {
-  const data = literals.map(lit => hypothesis.includes(lit) ? 1 : 0);
-  const ctx = document.getElementById("hypothesisChart").getContext("2d");
-
-  if (!chart) {
-    chart = new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels: literals,
-        datasets: [{
-          label: "Included in Hypothesis",
-          data: data,
-          backgroundColor: data.map(v => v ? "green" : "lightgray")
-        }]
-      },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true,
-            max: 1.2,
-            ticks: { display: false }
-          }
-        },
-        plugins: { legend: { display: false } }
-      }
-    });
-  } else {
-    chart.data.datasets[0].data = data;
-    chart.data.datasets[0].backgroundColor = data.map(v => v ? "green" : "lightgray");
-    chart.update();
+    outputDiv.style.display = "block";
+    logDiv.style.display = "block";
+    chartDiv.style.display = "block";
+  } catch {
+    guessResult.textContent = "Could not evaluate your guess. Server error.";
   }
 }
 </script>
