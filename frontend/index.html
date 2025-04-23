@@ -30,7 +30,7 @@
       border: 1px solid #ccc;
       white-space: pre-wrap;
     }
-    #hypothesis-section, #log {
+    #output, #log {
       display: none;
     }
     #log {
@@ -73,11 +73,10 @@
 </div>
 
 <h3>Current Hypothesis:</h3>
-<div id="hypothesis-section">
-  <div id="output">Waiting for input...</div>
-  <div id="chart-container" style="margin-top: 20px;">
-    <canvas id="hypothesisChart" width="600" height="200"></canvas>
-  </div>
+<div id="output">Waiting for input...</div>
+
+<div id="chart-container" style="margin-top: 20px;">
+  <canvas id="hypothesisChart" width="600" height="200"></canvas>
 </div>
 
 <h3>Action Log:</h3>
@@ -86,21 +85,22 @@
 <hr>
 <h2>Guess the Hypothesis</h2>
 <p>Select the literals you think are part of the current hypothesis:</p>
-<div class="checkbox-grid" id="literalCheckboxes"></div>
+<div class="checkbox-grid" id="literalCheckboxes">
+  <!-- Checkboxes will be added by JS -->
+</div>
 <button onclick="submitGuess()">Submit Guess</button>
 
 <div id="guess-result">Make a guess to see your score.</div>
 
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="app.js"></script>
 
+<!-- Checkbox + Guess Logic -->
 <script>
-// Literal list
-const literals = ["x1", "¬x1", "x2", "¬x2", "x3", "¬x3", "x4", "¬x4", "x5", "¬x5"];
-const checkboxContainer = document.getElementById("literalCheckboxes");
-
-// Dynamically add checkboxes
-window.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", function () {
+  const literals = ["x1", "¬x1", "x2", "¬x2", "x3", "¬x3", "x4", "¬x4", "x5", "¬x5"];
+  const checkboxContainer = document.getElementById("literalCheckboxes");
   literals.forEach(literal => {
     const label = document.createElement("label");
     const checkbox = document.createElement("input");
@@ -131,8 +131,8 @@ async function submitGuess() {
       <strong>Actual Hypothesis:</strong> ${data.actual_hypothesis.join(", ")}
     `;
 
-    // Reveal output and chart only now
-    document.getElementById("hypothesis-section").style.display = "block";
+    // Reveal hidden sections
+    document.getElementById("output").style.display = "block";
     document.getElementById("log").style.display = "block";
   } catch (error) {
     document.getElementById("guess-result").textContent = "Could not evaluate your guess. Server error.";
