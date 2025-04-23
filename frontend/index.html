@@ -91,19 +91,21 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="app.js"></script>
 
+<!-- Checkbox generation + guess logic -->
 <script>
-// Dynamically generate checkboxes for literals
-const literals = ["x1", "¬x1", "x2", "¬x2", "x3", "¬x3", "x4", "¬x4", "x5", "¬x5"];
-const checkboxContainer = document.getElementById("literalCheckboxes");
-literals.forEach(literal => {
-    const label = document.createElement("label");
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.value = literal;
-    checkbox.name = "literal";
-    label.appendChild(checkbox);
-    label.appendChild(document.createTextNode(" " + literal));
-    checkboxContainer.appendChild(label);
+document.addEventListener("DOMContentLoaded", function () {
+    const literals = ["x1", "¬x1", "x2", "¬x2", "x3", "¬x3", "x4", "¬x4", "x5", "¬x5"];
+    const checkboxContainer = document.getElementById("literalCheckboxes");
+    literals.forEach(literal => {
+        const label = document.createElement("label");
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.value = literal;
+        checkbox.name = "literal";
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(" " + literal));
+        checkboxContainer.appendChild(label);
+    });
 });
 
 async function submitGuess() {
