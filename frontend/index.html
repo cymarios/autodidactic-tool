@@ -55,12 +55,39 @@
 
 <h1>Autodidactic Learning Tool</h1>
 
+<h2>Instructions</h2>
 <p>
-  Enter a <strong>partially labeled binary example with length of 5</strong> (e.g., <code>10?1?</code>) and a label:
-  <code>1</code> (positive), <code>0</code> (negative), or <code>?</code> (unlabeled).
-  Submit examples one by one — after each, the autodidactic learning algorithm updates the internal hypothesis.
-  Press <strong>Reset</strong> to start over.
+  This interactive tool simulates an <strong>autodidactic learner</strong>—an algorithm that builds a hypothesis from labeled examples without external feedback.
 </p>
+
+<ol>
+  <li>
+    Enter a <strong>binary example of length 5</strong> using <code>0</code>, <code>1</code>, or <code>?</code> 
+    (e.g., <code>10?1?</code>), where <code>?</code> represents an unknown/missing value.
+  </li>
+  <li>
+    Choose a <strong>label</strong> for the example:
+    <ul>
+      <li><code>1</code> for a <em>positive</em> example</li>
+      <li><code>0</code> for a <em>negative</em> example</li>
+      <li><code>?</code> for an <em>unlabeled</em> example</li>
+    </ul>
+  </li>
+  <li>Click <strong>"Submit Example"</strong> to add it to the learning process.</li>
+  <li>
+    Once you've added at least one labeled example, try to <strong>guess the learner's current hypothesis</strong> by selecting the literals you think are included.
+  </li>
+  <li>Click <strong>"Submit Guess"</strong> to see your score and the actual hypothesis.</li>
+  <li>
+    To restart the learning process from scratch, click <strong>"Reset"</strong>.
+    This clears all examples, guesses, and resets the internal state.
+  </li>
+</ol>
+
+<p>
+  <strong>Tip:</strong> The hypothesis is not shown until you guess. Use your intuition and logic to deduce which literals remain in the hypothesis!
+</p>
+
 
 <label for="example">Example:</label>
 <input type="text" id="example" placeholder="e.g., 10?1? (length 5)">
