@@ -56,8 +56,8 @@
 
 <p>
   Enter a <strong>partially labeled binary example with length of 5</strong> (e.g., <code>10?1?</code>) and a label:
-  <code>1</code> (positive), <code>0</code> (negative), or <code>?</code> (unlabeled).  
-  Submit examples one by one — after each, the autodidactic learning algorithm updates the internal hypothesis.  
+  <code>1</code> (positive), <code>0</code> (negative), or <code>?</code> (unlabeled).
+  Submit examples one by one — after each, the autodidactic learning algorithm updates the internal hypothesis.
   Press <strong>Reset</strong> to start over.
 </p>
 
@@ -85,25 +85,20 @@
 <hr>
 <h2>Guess the Current Hypothesis</h2>
 <p>Select the literals you think are part of the current hypothesis:</p>
-<div class="checkbox-grid" id="literalCheckboxes"></div>
+<div class="checkbox-grid" id="literalCheckboxes">
+  <!-- Checkboxes will be added by JS -->
+</div>
 <button onclick="submitGuess()">Submit Guess</button>
 
 <div id="guess-result">Make a guess to see your score.</div>
 
-<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="app.js"></script>
 
 <script>
-const literals = ["x1", "¬x1", "x2", "¬x2", "x3", "¬x3", "x4", "¬x4", "x5", "¬x5"];
-const checkboxContainer = document.getElementById("literalCheckboxes");
-const outputDiv = document.getElementById("output");
-const logDiv = document.getElementById("log");
-const chartDiv = document.getElementById("chart-container");
-const guessResult = document.getElementById("guess-result");
-
-function generateCheckboxes() {
-  checkboxContainer.innerHTML = "";
+document.addEventListener("DOMContentLoaded", function () {
+  const literals = ["x1", "¬x1", "x2", "¬x2", "x3", "¬x3", "x4", "¬x4", "x5", "¬x5"];
+  const checkboxContainer = document.getElementById("literalCheckboxes");
   literals.forEach(literal => {
     const label = document.createElement("label");
     const checkbox = document.createElement("input");
@@ -114,30 +109,31 @@ function generateCheckboxes() {
     label.appendChild(document.createTextNode(" " + literal));
     checkboxContainer.appendChild(label);
   });
-}
-
-document.addEventListener("DOMContentLoaded", generateCheckboxes);
+});
 
 async function submitGuess() {
   const selected = Array.from(document.querySelectorAll("input[name=literal]:checked")).map(cb => cb.value);
+
   try {
     const response = await fetch("https://autodidactic-tool.onrender.com/guess", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ guess: selected })
     });
+
     const data = await response.json();
-    guessResult.innerHTML = `
+    document.getElementById("guess-result").innerHTML = `
       <strong>Score:</strong> ${data.score} (${data.percentage})<br>
       <strong>Correct Inclusions:</strong> ${data.correct_inclusions.join(", ") || "None"}<br>
       <strong>Correct Exclusions:</strong> ${data.correct_exclusions.join(", ") || "None"}<br>
       <strong>Actual Hypothesis:</strong> ${data.actual_hypothesis.join(", ")}
     `;
-    outputDiv.style.display = "block";
-    logDiv.style.display = "block";
-    chartDiv.style.display = "block";
-  } catch {
-    guessResult.textContent = "Could not evaluate your guess. Server error.";
+
+    document.getElementById("output").style.display = "block";
+    document.getElementById("log").style.display = "block";
+    document.getElementById("chart-container").style.display = "block";
+  } catch (error) {
+    document.getElementById("guess-result").textContent = "Could not evaluate your guess. Server error.";
   }
 }
 </script>
