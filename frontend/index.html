@@ -30,7 +30,7 @@
       border: 1px solid #ccc;
       white-space: pre-wrap;
     }
-    #output, #log {
+    #hypothesis-section, #log {
       display: none;
     }
     #log {
@@ -73,10 +73,11 @@
 </div>
 
 <h3>Current Hypothesis:</h3>
-<div id="output">Waiting for input...</div>
-
-<div id="chart-container" style="margin-top: 20px;">
-  <canvas id="hypothesisChart" width="600" height="200"></canvas>
+<div id="hypothesis-section">
+  <div id="output">Waiting for input...</div>
+  <div id="chart-container" style="margin-top: 20px;">
+    <canvas id="hypothesisChart" width="600" height="200"></canvas>
+  </div>
 </div>
 
 <h3>Action Log:</h3>
@@ -94,10 +95,11 @@
 <script src="app.js"></script>
 
 <script>
+// Literal list
 const literals = ["x1", "¬x1", "x2", "¬x2", "x3", "¬x3", "x4", "¬x4", "x5", "¬x5"];
 const checkboxContainer = document.getElementById("literalCheckboxes");
 
-// Create checkboxes
+// Dynamically add checkboxes
 window.addEventListener("DOMContentLoaded", () => {
   literals.forEach(literal => {
     const label = document.createElement("label");
@@ -129,8 +131,8 @@ async function submitGuess() {
       <strong>Actual Hypothesis:</strong> ${data.actual_hypothesis.join(", ")}
     `;
 
-    // Reveal the hypothesis and log
-    document.getElementById("output").style.display = "block";
+    // Reveal output and chart only now
+    document.getElementById("hypothesis-section").style.display = "block";
     document.getElementById("log").style.display = "block";
   } catch (error) {
     document.getElementById("guess-result").textContent = "Could not evaluate your guess. Server error.";
