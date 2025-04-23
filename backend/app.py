@@ -19,13 +19,12 @@ class AutodidacticLearner:
             self.hypothesis.add(f"¬x{i+1}")
 
     def refine_hypothesis(self, example, label):
-        # Resolve ? based on label
         if label == "1":
             resolved = ''.join(c if c in '01' else '1' for c in example)
         elif label == "0":
             resolved = ''.join(c if c in '01' else '0' for c in example)
         else:
-            resolved = example  # keep ? for unlabeled
+            resolved = example
 
         log_entry = f"Example: {resolved}:{label} | "
 
@@ -46,17 +45,13 @@ class AutodidacticLearner:
                     if f"x{i+1}" in self.hypothesis:
                         self.hypothesis.remove(f"x{i+1}")
                         removed.add(f"x{i+1}")
-            if removed:
-                log_entry += f"Positive; eliminated: {', '.join(sorted(removed))}"
-            else:
-                log_entry += "Positive; no change."
+            log_entry += f"Positive; eliminated: {', '.join(sorted(removed))}" if removed else "Positive; no change."
         else:
             log_entry += "Invalid label; ignored."
 
         self.log.append(log_entry)
 
     def get_hypothesis(self):
-        # Ordered: x1, ¬x1, x2, ¬x2, ...
         ordered = []
         for i in range(1, self.num_features + 1):
             if f"x{i}" in self.hypothesis:
@@ -102,8 +97,24 @@ def reset():
         "log": learner.get_log()
     })
 
+@app.route('/guess', methods=['POST'])
+def guess():
+    data = request.json
+    guessed_literals = set(data.get("guess", []))
+    correct_hypothesis = set(learner.get_hypothesis())
+    all_literals = set(f"x{i+1}" for i in range(learner.num_features)) | set(f"¬x{i+1}" for i in range(learner.num_features))
 
-# NO app.run() here at all!
+    correct_inclusions = guessed_literals & correct_hypothesis
+    correct_exclusions = (all_literals - guessed_literals) & (all_literals - correct_hypothesis)
+    total_correct = len(correct_inclusions) + len(correct_exclusions)
 
-# Flask will be served by Gunicorn using:
-# gunicorn app:app
+    score_percentage = round((total_correct / len(all_literals)) * 100)
+
+    return jsonify({
+        "status": "success",
+        "score": f"{total_correct}/10",
+        "percentage": f"{score_percentage}%",
+        "correct_inclusions": sorted(list(correct_inclusions)),
+        "correct_exclusions": sorted(list(correct_exclusions)),
+        "actual_hypothesis": sorted(list(correct_hypothesis))
+    })
