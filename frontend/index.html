@@ -38,15 +38,13 @@
       overflow-y: auto;
     }
     .checkbox-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      display: flex;
+      flex-wrap: wrap;
       gap: 10px;
       margin-top: 10px;
     }
     .checkbox-grid label {
-      display: flex;
-      align-items: center;
-      gap: 5px;
+      flex: 1 0 30%;
     }
   </style>
 </head>
@@ -94,13 +92,12 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="app.js"></script>
 
+<!-- Checkbox generation + guessing logic -->
 <script>
 const literals = ["x1", "¬x1", "x2", "¬x2", "x3", "¬x3", "x4", "¬x4", "x5", "¬x5"];
 const checkboxContainer = document.getElementById("literalCheckboxes");
-const guessResultBox = document.getElementById("guess-result");
 
-// Create checkboxes on DOM load
-window.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => {
   literals.forEach(literal => {
     const label = document.createElement("label");
     const checkbox = document.createElement("input");
@@ -124,7 +121,7 @@ async function submitGuess() {
     });
 
     const data = await response.json();
-    guessResultBox.innerHTML = `
+    document.getElementById("guess-result").innerHTML = `
       <strong>Score:</strong> ${data.score} (${data.percentage})<br>
       <strong>Correct Inclusions:</strong> ${data.correct_inclusions.join(", ") || "None"}<br>
       <strong>Correct Exclusions:</strong> ${data.correct_exclusions.join(", ") || "None"}<br>
@@ -135,7 +132,7 @@ async function submitGuess() {
     document.getElementById("log").style.display = "block";
     document.getElementById("chart-container").style.display = "block";
   } catch (error) {
-    guessResultBox.textContent = "Could not evaluate your guess. Server error.";
+    document.getElementById("guess-result").textContent = "Could not evaluate your guess. Server error.";
   }
 }
 
@@ -145,17 +142,82 @@ function resetLearner() {
     .then(data => {
       document.getElementById("example").value = "";
       document.getElementById("label").value = "";
-
       document.getElementById("output").style.display = "none";
       document.getElementById("log").style.display = "none";
       document.getElementById("chart-container").style.display = "none";
-
       document.getElementById("output").textContent = "Waiting for input...";
       document.getElementById("log").textContent = "No steps yet.";
-      guessResultBox.textContent = "Make a guess to see your score.";
-
+      document.getElementById("guess-result").textContent = "Make a guess to see your score.";
       document.querySelectorAll("input[name=literal]").forEach(cb => cb.checked = false);
     });
+}
+
+function submitExample() {
+  const example = document.getElementById("example").value.trim();
+  const label = document.getElementById("label").value.trim();
+
+  if (!example || !label) {
+    alert("Please enter both example and label.");
+    return;
+  }
+
+  fetch("https://autodidactic-tool.onrender.com/submit_example", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ example, label })
+  })
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById("output").textContent =
+        data.current_hypothesis.length > 0
+          ? data.current_hypothesis.join(", ")
+          : "[Empty hypothesis]";
+
+      document.getElementById("log").innerHTML = data.log.map(line => `<div>${line}</div>`).join("");
+
+      updateChart(data.current_hypothesis);
+
+      // Hide outputs until guess is made
+      document.getElementById("output").style.display = "none";
+      document.getElementById("log").style.display = "none";
+      document.getElementById("chart-container").style.display = "none";
+      document.getElementById("guess-result").textContent = "Make a guess to see your score.";
+      document.querySelectorAll("input[name=literal]").forEach(cb => cb.checked = false);
+    });
+}
+
+let chart = null;
+function updateChart(hypothesis) {
+  const data = literals.map(lit => hypothesis.includes(lit) ? 1 : 0);
+  const ctx = document.getElementById("hypothesisChart").getContext("2d");
+
+  if (!chart) {
+    chart = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: literals,
+        datasets: [{
+          label: "Included in Hypothesis",
+          data: data,
+          backgroundColor: data.map(v => v ? "green" : "lightgray")
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 1.2,
+            ticks: { display: false }
+          }
+        },
+        plugins: { legend: { display: false } }
+      }
+    });
+  } else {
+    chart.data.datasets[0].data = data;
+    chart.data.datasets[0].backgroundColor = data.map(v => v ? "green" : "lightgray");
+    chart.update();
+  }
 }
 </script>
 
