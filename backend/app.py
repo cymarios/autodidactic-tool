@@ -104,13 +104,6 @@ def guess():
     correct_hypothesis = set(learner.get_hypothesis())
     all_literals = set(f"x{i+1}" for i in range(learner.num_features)) | set(f"¬x{i+1}" for i in range(learner.num_features))
 
-    # Handle edge case: user guesses before submitting any example
-    if correct_hypothesis == all_literals:
-        return jsonify({
-            "status": "error",
-            "message": "You must submit at least one labeled example before making a guess."
-        }), 400
-
     correct_inclusions = guessed_literals & correct_hypothesis
     correct_exclusions = (all_literals - guessed_literals) & (all_literals - correct_hypothesis)
     total_correct = len(correct_inclusions) + len(correct_exclusions)
@@ -125,4 +118,3 @@ def guess():
         "correct_exclusions": sorted(list(correct_exclusions)),
         "actual_hypothesis": sorted(list(correct_hypothesis))
     })
-
