@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Autodidactic Learning Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 30px;
+            max-width: 700px;
+            margin: auto;
+            background-color: #f8f8f8;
+        }
+        h1 {
+            text-align: center;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        button {
+            width: 48%;
+        }
+        #output, #log {
+            background-color: #f3f3f3;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ccc;
+            white-space: pre-wrap;
+        }
+        #log {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Autodidactic Learning Tool</h1>
+
+   <p>
+    Enter a <strong>partially labeled binary example with length of 5</strong> (e.g., <code>10?1?</code>) and a label:  
+    <code>1</code> (positive), <code>0</code> (negative), or <code>?</code> (unlabeled).  
+    Submit examples one by one — after each, the autodidactic learning algorithm updates the current hypothesis  
+    based on all previously labeled examples. Press <strong>Reset</strong> to start over.
+</p>
+
+    <label for="example">Example:</label>
+   <input type="text" id="example" placeholder="e.g., 10?1? (length 5)">
+
+    <label for="label">Label:</label>
+    <input type="text" id="label" placeholder="1 (positive), 0 (negative), or ? (unlabeled)">
+
+    <div style="display: flex; justify-content: space-between;">
+        <button onclick="submitExample()">Submit Example</button>
+        <button onclick="resetLearner()">Reset</button>
+    </div>
+
+    <h3>Current Hypothesis:</h3>
+    <div id="output">Waiting for input...</div>
+
+    <div id="chart-container" style="margin-top: 20px;">
+        <canvas id="hypothesisChart" width="600" height="200"></canvas>
+    </div>
+
+    <h3>Action Log:</h3>
+    <div id="log">No steps yet.</div>
+
+    <!-- Chart.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Your JS logic -->
+    <script src="app.js"></script>
+
+</body>
+</html>
