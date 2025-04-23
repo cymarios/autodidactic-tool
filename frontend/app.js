@@ -1,6 +1,6 @@
 let chart = null;
 const literals = ["x1", "¬x1", "x2", "¬x2", "x3", "¬x3", "x4", "¬x4", "x5", "¬x5"];
-const BACKEND_URL = "http://127.0.0.1:5000";
+const BACKEND_URL = "https://autodidactic-tool.onrender.com";
 
 async function submitExample() {
     const example = document.getElementById("example").value.trim();
